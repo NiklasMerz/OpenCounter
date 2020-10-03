@@ -1,30 +1,33 @@
 package dev.merz.opencounter;
 
 import android.app.AppOpsManager;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import dev.merz.opencounter.bubble.BubbleActivity;
 
 import android.provider.Settings;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_test) {
-            testSelf("dev.merz.opencounter");
+            getStatsAndShowNotification(this.getPackageName());
             return true;
         }
 
@@ -99,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void testSelf(String pkg) {
+    private void getStatsAndShowNotification(String pkg) {
         if (!this.checkForPermission(this.getApplicationContext())) {
             startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
             return;
@@ -119,22 +122,54 @@ public class MainActivity extends AppCompatActivity {
         showNotification(selfEntry);
     }
 
-    private void showNotification(UsageStats usageStats) {
-        ResolveInfo pkg = getPackage(usageStats);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+    private void showNotification(UsageStats usageStats) {
+        ResolveInfo pkg = AppHelper.getPackage(pm, usageStats);
+
+        Notification.BubbleMetadata bubble = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+             bubble = getBubble();
+        }
+
+
+        Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_baseline_mobile_off_24)
                 .setContentTitle("Count: " + pkg.loadLabel(pm))
-                .setContentText(Integer.toString(getCount(usageStats)))
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setContentText(Integer.toString(UsageHelper.getCount(usageStats)))
                 .setAutoCancel(true);
 
+
+        //if (bubble != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setBubbleMetadata(bubble);
+        //}
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
         // notificationId is a unique int for each notification that you must define
         int notificationId = 123;
         notificationManager.notify(notificationId, builder.build());
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private Notification.BubbleMetadata getBubble() {
+        // Create bubble intent
+        Context context = getApplicationContext();
+        Intent target = new Intent(context, BubbleActivity.class);
+        PendingIntent bubbleIntent =
+                PendingIntent.getActivity(context, 0, target, 0 /* flags */);
+
+        // Create bubble metadata
+
+        // Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_baseline_mobile_off_24))
+        Notification.BubbleMetadata bubbleData =
+                new Notification.BubbleMetadata.Builder()
+                        .setIntent(bubbleIntent)
+                        .setIcon(Icon.createWithResource(context, R.drawable.ic_baseline_mobile_off_24))
+                        .setDesiredHeight(600)
+                        .setSuppressNotification(true)
+                        .build();
+
+        return bubbleData;
     }
 
     private void createNotificationChannel() {
@@ -152,30 +187,5 @@ public class MainActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-    }
-
-
-    private ResolveInfo getPackage(UsageStats usageStats) {
-        Intent intent = pm.getLaunchIntentForPackage(usageStats.getPackageName());
-        return pm.resolveActivity(intent, PackageManager.MATCH_ALL);
-    }
-
-    private int getCount(UsageStats usageStats) {
-        try {
-            Field privateField = UsageStats.class.
-                    getDeclaredField("mLaunchCount");
-
-            privateField.setAccessible(true);
-
-            int fieldValue = (int) privateField.get(usageStats);
-            return  fieldValue;
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        //TODO error
-        return 0;
     }
 }
