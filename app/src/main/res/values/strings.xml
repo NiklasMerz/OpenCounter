@@ -5,4 +5,5 @@
     <string name="test_self">Self test</string>
     <string name="open_channel_name">Notification for app open</string>
     <string name="open_channel_description">Notifications while opening monitored app</string>
+    <string name="title_activity_bubble">Launch Count</string>
 </resources>
