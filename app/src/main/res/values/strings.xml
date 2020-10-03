@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Open Counter</string>
+    <string name="action_settings">Settings</string>
+    <string name="no_apps">No apps</string>
+    <string name="test_self">Self test</string>
+    <string name="open_channel_name">Notification for app open</string>
+    <string name="open_channel_description">Notifications while opening monitored app</string>
+</resources>
