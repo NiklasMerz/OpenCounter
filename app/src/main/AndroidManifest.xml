@@ -23,10 +23,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".overlay.MainActivity"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".overlay.OverlayShowingService"
+            android:exported="false" />
     </application>
 
 
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 </manifest>
