@@ -6,4 +6,6 @@
     <string name="open_channel_name">Notification for app open</string>
     <string name="open_channel_description">Notifications while opening monitored app</string>
     <string name="title_activity_bubble">Launch Count</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>
