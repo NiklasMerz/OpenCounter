@@ -1,6 +1,5 @@
 package dev.merz.opencounter.bubble;
 
-import androidx.appcompat.app.AppCompatActivity;
 import dev.merz.opencounter.AppHelper;
 import dev.merz.opencounter.R;
 import dev.merz.opencounter.UsageHelper;
@@ -10,11 +9,9 @@ import android.app.usage.UsageStats;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class BubbleActivity extends ListActivity {
 

@@ -1,27 +1,24 @@
 package dev.merz.opencounter;
 
 import android.app.AppOpsManager;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.drawable.Icon;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationManagerCompat;
-import dev.merz.opencounter.bubble.BubbleActivity;
 
 import android.provider.Settings;
 import android.view.View;
@@ -36,7 +33,6 @@ import static android.app.AppOpsManager.*;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String CHANNEL_ID = "notifychannel";
     private PackageManager pm;
 
     @Override
@@ -119,57 +115,8 @@ public class MainActivity extends AppCompatActivity {
 
         UsageStats selfEntry = stats.get(pkg);
 
-        showNotification(selfEntry);
-    }
-
-
-    private void showNotification(UsageStats usageStats) {
-        ResolveInfo pkg = AppHelper.getPackage(pm, usageStats);
-
-        Notification.BubbleMetadata bubble = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-             bubble = getBubble();
-        }
-
-
-        Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_baseline_mobile_off_24)
-                .setContentTitle("Count: " + pkg.loadLabel(pm))
-                .setContentText(Integer.toString(UsageHelper.getCount(usageStats)))
-                .setAutoCancel(true);
-
-
-        //if (bubble != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            builder.setBubbleMetadata(bubble);
-        //}
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-
-        // notificationId is a unique int for each notification that you must define
-        int notificationId = 123;
-        notificationManager.notify(notificationId, builder.build());
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.Q)
-    private Notification.BubbleMetadata getBubble() {
-        // Create bubble intent
-        Context context = getApplicationContext();
-        Intent target = new Intent(context, BubbleActivity.class);
-        PendingIntent bubbleIntent =
-                PendingIntent.getActivity(context, 0, target, 0 /* flags */);
-
-        // Create bubble metadata
-
-        // Notification.BubbleMetadata.Builder(bubbleIntent, Icon.createWithResource(context, R.drawable.ic_baseline_mobile_off_24))
-        Notification.BubbleMetadata bubbleData =
-                new Notification.BubbleMetadata.Builder()
-                        .setIntent(bubbleIntent)
-                        .setIcon(Icon.createWithResource(context, R.drawable.ic_baseline_mobile_off_24))
-                        .setDesiredHeight(600)
-                        .setSuppressNotification(true)
-                        .build();
-
-        return bubbleData;
+        NotificationHelper nh = new NotificationHelper(this.getApplicationContext(), pm);
+        nh.showNotification(selfEntry);
     }
 
     private void createNotificationChannel() {
@@ -180,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             String description = getString(R.string.open_channel_description);
             int importance = NotificationManager
                     .IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            NotificationChannel channel = new NotificationChannel(NotificationHelper.CHANNEL_ID, name, importance);
             channel.setDescription(description);
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this

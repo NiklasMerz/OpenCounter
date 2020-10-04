@@ -9,6 +9,8 @@
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
+    <uses-permission android:name="android.permission."></uses-permission>
 
     <application
         android:allowBackup="true"
@@ -37,6 +39,14 @@
             android:resizeableActivity="true"
             >
         </activity>
+
+        <receiver android:name=".WakeupReciever"  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.PACKAGES_UNSUSPENDED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
